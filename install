@@ -22,6 +22,10 @@ if [[ -z $(sudo -n uptime 2>/dev/null) ]]; then
   exit
 fi
 
+#
+# apt update, upgrade, install
+#
+
 log apt update
 sudo apt update
 
@@ -36,5 +40,19 @@ done << EOF
 ack
 docker
 git
+obs-studio
 tree
 EOF
+
+#
+# snap refresh, install
+#
+
+log snap refresh
+sudo snap refresh
+
+log snap install opera
+sudo snap install opera
+
+log snap install code
+sudo snap install code --classic
