@@ -27,3 +27,13 @@ sudo apt update
 
 log apt upgrade
 sudo apt upgrade --yes
+
+while read package
+do
+    log apt install $package
+    apt install --yes $package
+done << EOF
+ack
+git
+tree
+EOF
