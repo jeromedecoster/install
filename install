@@ -44,17 +44,23 @@ obs-studio
 tree
 EOF
 
+# https://doc.ubuntu-fr.org/opera
+sudo add-apt-repository 'deb https://deb.opera.com/opera-stable/ stable non-free #Opera Browser (final releases)'
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A5C7FF72
+sudo apt-get update
+sudo apt install -V opera-stable
+
 #
 # snap refresh, install
 #
 
 log snap refresh
-sudo snap refresh
+# sudo snap refresh
 
 while read snap
 do
     log snap install $snap
-    sudo snap install $snap --classic
+    #sudo snap install $snap --classic
 done << EOF
 code
 opera
