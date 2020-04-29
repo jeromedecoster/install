@@ -31,9 +31,10 @@ sudo apt upgrade --yes
 while read package
 do
     log apt install $package
-    apt install --yes $package
+    sudo apt install --yes $package
 done << EOF
 ack
+docker
 git
 tree
 EOF
