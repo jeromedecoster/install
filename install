@@ -38,6 +38,7 @@ do
     sudo apt install --yes $package
 done << EOF
 ack
+curl
 docker
 git
 obs-studio
