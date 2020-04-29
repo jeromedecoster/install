@@ -1,2 +1,23 @@
 #!/bin/bash
-echo hello
+
+# log $1 in underline green then $@ in yellow
+log() {
+    local arg=$1
+    shift
+    echo -e "\033[1;4;32m${arg}\033[0m \033[1;33m${@}\033[0m"
+}
+
+# echo $1 in underline magenta then $@ in cyan (to the stderr)
+err() {
+    local arg=$1
+    shift
+    echo -e "\033[1;4;35m${arg}\033[0m \033[1;36m${@}\033[0m" >&2
+}
+
+# check if sudo access is enabled
+# note: use `sudo -k` to loose sudo access
+if [[ -z $(sudo -n uptime 2>/dev/null) ]]; then
+  # without sudo access return nothing
+  err abort sudo access required...
+  exit
+fi
