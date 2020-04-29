@@ -25,3 +25,5 @@ fi
 log apt update
 sudo apt update
 
+log apt upgrade
+sudo apt upgrade --yes
