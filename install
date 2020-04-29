@@ -44,11 +44,30 @@ obs-studio
 tree
 EOF
 
-# https://doc.ubuntu-fr.org/opera
-sudo add-apt-repository 'deb https://deb.opera.com/opera-stable/ stable non-free #Opera Browser (final releases)'
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A5C7FF72
-sudo apt-get update
-sudo apt install -V opera-stable
+#
+# apt install opera
+#
+log apt install opera
+sudo add-apt-repository 'deb https://deb.opera.com/opera-stable/ stable non-free'
+# list with `cat /etc/apt/sources.list`
+# manual edit with `sudo nano /etc/apt/sources.list`
+# remove with `sudo add-apt-repository --remove 'deb https://deb.opera.com/opera-stable/ stable non-free'`
+
+wget http://deb.opera.com/archive.key \
+    --output-document=- \
+    --quiet \
+    | sudo apt-key add -
+# list with `apt-key list`
+# remove manually with:
+#
+# 1) apt-key list
+# pub   rsa4096 2019-09-12 [SC] [expire : 2021-09-11]
+#    68E9 B2B0 3661 EE3C 44F7  0750 4B8E C3BA ABDC 4346
+# uid          [unknown] Opera Software Archive Automatic Signing Key 2019 <packager@opera.com>
+#
+# 2) then `sudo apt-key del 'ABDC 4346'`
+sudo apt update
+sudo apt install --yes opera-stable
 
 #
 # snap refresh, install
