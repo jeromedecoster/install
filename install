@@ -41,13 +41,13 @@ ack
 curl
 docker
 git
+jq
 obs-studio
 tree
+youtube-dl
 EOF
 
-#
 # apt install opera
-#
 log apt install opera
 # add source if not already added (script previously executed)
 if [[ -n $(grep opera-stable /etc/apt/sources.list.d/*) ]]
@@ -80,9 +80,7 @@ then
     sudo add-apt-repository --remove 'deb https://deb.opera.com/opera-stable/ stable non-free'
 fi
 
-#
 # apt install code
-#
 log apt install code
 if [[ -z $(grep vscode /etc/apt/sources.list.d/*) ]]
 then
