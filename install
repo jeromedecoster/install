@@ -48,7 +48,11 @@ EOF
 # apt install opera
 #
 log apt install opera
-sudo add-apt-repository 'deb https://deb.opera.com/opera-stable/ stable non-free'
+# add source if not already added (script previously executed)
+if [[ -n $(grep opera-stable /etc/apt/sources.list.d/*) ]]
+then
+    sudo add-apt-repository 'deb https://deb.opera.com/opera-stable/ stable non-free'
+fi
 # list with `cat /etc/apt/sources.list`
 # manual edit with `sudo nano /etc/apt/sources.list`
 # remove with `sudo add-apt-repository --remove 'deb https://deb.opera.com/opera-stable/ stable non-free'`
@@ -79,7 +83,10 @@ fi
 # apt install code
 #
 log apt install code
-sudo add-apt-repository 'deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main'
+if [[ -z $(grep vscode /etc/apt/sources.list.d/*) ]]
+then
+    sudo add-apt-repository 'deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main'
+fi
 
 wget https://packages.microsoft.com/keys/microsoft.asc \
     --output-document=- \
@@ -89,7 +96,7 @@ wget https://packages.microsoft.com/keys/microsoft.asc \
 sudo apt update
 sudo apt install code
 
-# remove duplicate source warning : https://askubuntu.com/a/184446
+# remove duplicate source warning
 if [[ -n $(grep vscode /etc/apt/sources.list.d/*) ]]
 then
     sudo add-apt-repository --remove 'deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main'
