@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # log $1 in underline green then $@ in yellow
 log() { echo -e "\033[1;4;32m${1}\033[0m \033[1;33m${@:2}\033[0m"; }
 
@@ -102,7 +100,8 @@ fi
 #
 
 # soulseek
-cd /usr/local/bin
+log install soulseek
+cd $DOCUMENTS
 curl raw.github.com/jeromedecoster/soulseek/master/script.sh \
     --location \
     --silent \
