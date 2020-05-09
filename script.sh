@@ -1,10 +1,12 @@
 # log $1 in underline green then $@ in yellow
-log() { echo -e "\033[1;4;32m${1}\033[0m \033[1;33m${@:2}\033[0m"; }
+log() { echo -e "\e[38;5;82;4m${1}\e[0m \e[38;5;226m${@:2}\e[0m"; }
 
 # echo $1 in underline red then $@ in cyan (to the stderr)
-err() { echo -e "\033[1;4;31m${1}\033[0m \033[1;36m${@:2}\033[0m" >&2; }
+err() { echo -e "\e[38;5;196;4m${1}\e[0m \e[38;5;87m${@:2}\e[0m" >&2; }
 
-# abort if sudo access is already enabled
+# kill sudo if script was started with `sudo bash <script>` 
+sudo --reset-timestamp
+# abort if sudo access is still already enabled (script started as root)
 [[ -n $(sudo -n uptime 2>/dev/null) ]] && { err abort root access unauthorized; exit; }
 
 DOCUMENTS=$(xdg-user-dir DOCUMENTS)
@@ -15,94 +17,123 @@ sudo echo >/dev/null
 # one more check if the user abort the password question
 [[ -z `sudo -n uptime 2>/dev/null` ]] && { err abort sudo required; exit; }
 
-#
-# apt update, upgrade, install
-#
+apt-update-upgrade-install() {
+    log update apt
+    sudo apt update
+    
+    log upgrade apt
+    sudo apt upgrade --yes
 
-log apt update
-sudo apt update
+    for package in ack build-essential curl docker git gparted htop jq obs-studio tree youtube-dl
+    do 
+        log install $package
+        sudo apt install --yes $package
+    done
+}
 
-log apt upgrade
-sudo apt upgrade --yes
+apt-install-opera() {
+    log install opera
+    # add source if not already added (script previously executed)
+    [[ -n $(grep opera-stable /etc/apt/sources.list.d/*) ]] && \
+        sudo add-apt-repository 'deb https://deb.opera.com/opera-stable/ stable non-free';
 
-while read package
-do
-    log apt install $package
-    sudo apt install --yes $package
-done << EOF
-ack
-curl
-docker
-git
-jq
-obs-studio
-tree
-youtube-dl
-EOF
+    # list with `cat /etc/apt/sources.list`
+    # manual edit with `sudo nano /etc/apt/sources.list`
+    # remove with `sudo add-apt-repository --remove 'deb https://deb.opera.com/opera-stable/ stable non-free'`
 
-# apt install opera
-log apt install opera
-# add source if not already added (script previously executed)
-if [[ -n $(grep opera-stable /etc/apt/sources.list.d/*) ]]
-then
-    sudo add-apt-repository 'deb https://deb.opera.com/opera-stable/ stable non-free'
-fi
-# list with `cat /etc/apt/sources.list`
-# manual edit with `sudo nano /etc/apt/sources.list`
-# remove with `sudo add-apt-repository --remove 'deb https://deb.opera.com/opera-stable/ stable non-free'`
+    wget http://deb.opera.com/archive.key \
+        --output-document=- \
+        --quiet \
+        | sudo apt-key add -
+    # list with `apt-key list`
+    # remove manually with:
+    #
+    # 1) apt-key list
+    # pub   rsa4096 2019-09-12 [SC] [expire : 2021-09-11]
+    #    68E9 B2B0 3661 EE3C 44F7  0750 4B8E C3BA ABDC 4346
+    # uid          [unknown] Opera Software Archive Automatic Signing Key 2019 <packager@opera.com>
+    #
+    # 2) then `sudo apt-key del 'ABDC 4346'`
+    sudo apt update
+    sudo apt install --yes opera-stable
 
-wget http://deb.opera.com/archive.key \
-    --output-document=- \
-    --quiet \
-    | sudo apt-key add -
-# list with `apt-key list`
-# remove manually with:
-#
-# 1) apt-key list
-# pub   rsa4096 2019-09-12 [SC] [expire : 2021-09-11]
-#    68E9 B2B0 3661 EE3C 44F7  0750 4B8E C3BA ABDC 4346
-# uid          [unknown] Opera Software Archive Automatic Signing Key 2019 <packager@opera.com>
-#
-# 2) then `sudo apt-key del 'ABDC 4346'`
-sudo apt update
-sudo apt install --yes opera-stable
+    # remove duplicate source warning : https://askubuntu.com/a/184446
+    [[ -n $(grep opera-stable /etc/apt/sources.list.d/*) ]] && \
+        sudo add-apt-repository --remove 'deb https://deb.opera.com/opera-stable/ stable non-free';
+}
 
-# remove duplicate source warning : https://askubuntu.com/a/184446
-if [[ -n $(grep opera-stable /etc/apt/sources.list.d/*) ]]
-then
-    sudo add-apt-repository --remove 'deb https://deb.opera.com/opera-stable/ stable non-free'
-fi
+apt-install-code() {
+    log install code
+    [[ -z $(grep vscode /etc/apt/sources.list.d/*) ]] && \
+        sudo add-apt-repository 'deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main';
+    
+    wget https://packages.microsoft.com/keys/microsoft.asc \
+        --output-document=- \
+        --quiet \
+        | sudo apt-key add -
 
-# apt install code
-log apt install code
-if [[ -z $(grep vscode /etc/apt/sources.list.d/*) ]]
-then
-    sudo add-apt-repository 'deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main'
-fi
+    sudo apt update
+    sudo apt install code
 
-wget https://packages.microsoft.com/keys/microsoft.asc \
-    --output-document=- \
-    --quiet \
-    | sudo apt-key add -
+    # remove duplicate source warning
+    [[ -n $(grep vscode /etc/apt/sources.list.d/*) ]] && \
+        sudo add-apt-repository --remove 'deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main';
 
-sudo apt update
-sudo apt install code
+    log install extension better-toml
+    code --install-extension bungcip.better-toml
+}
 
-# remove duplicate source warning
-if [[ -n $(grep vscode /etc/apt/sources.list.d/*) ]]
-then
-    sudo add-apt-repository --remove 'deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main'
-fi
+snap-update-install() {
+    log snap refresh
+    sudo snap refresh
+
+    log install hugo
+    sudo snap install hugo
+}
+
+install-terraform() {
+    log install terraform
+    curl raw.github.com/jeromedecoster/terraform/master/install.sh \
+        --location \
+        --silent \
+        | bash
+}
+
+install-soulseek() {
+    log install soulseek
+    cd $DOCUMENTS
+    curl raw.github.com/jeromedecoster/soulseek/master/script.sh \
+        --location \
+        --silent \
+        | bash
+}
+
+install-github-split() {
+    log install github-split
+    cd $DOCUMENTS
+    curl raw.github.com/jeromedecoster/github-split/master/script.sh \
+        --location \
+        --silent \
+        | bash
+}
+
+install-down() {
+    log install down
+    curl raw.github.com/jeromedecoster/down/master/script.sh \
+        --location \
+        --silent \
+        | bash
+}
 
 
-#
-# other installs
-#
 
-# soulseek
-log install soulseek
-cd $DOCUMENTS
-curl raw.github.com/jeromedecoster/soulseek/master/script.sh \
-    --location \
-    --silent \
-    | bash
+apt-update-upgrade-install
+apt-install-opera
+apt-install-code
+snap-update-install
+install-terraform
+install-soulseek
+install-github-split
+install-down
+
+# xdg-settings set default-web-browser firefox.desktop
